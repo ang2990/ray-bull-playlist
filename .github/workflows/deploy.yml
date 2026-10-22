@@ -1,4 +1,4 @@
-name: Deploy Playlist via FTPS
+name: Deploy Playlist via SFTP
 
 on:
   push:
@@ -11,11 +11,13 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Sync files via FTPS
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      - name: SFTP Upload
+        uses: jakejarvis/sftp-action@v5
         with:
-          server: ${{ secrets.FTP_SERVER }}
+          hostname: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftps
-          server-dir: /playlist.raybullstudio.com/
+          port: 22
+          remote_path: /playlist.raybullstudio.com/
+        env:
+          SSH_PRIVATE_KEY: ""
