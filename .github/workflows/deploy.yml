@@ -19,5 +19,5 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           port: 22
           source: "admin.html,index.html,tracks.json"
-          target: "/playlist.raybullstudio.com/"
+          target: "/home/dh_45wnm8/playlist.raybullstudio.com/"
           rm: false
