@@ -1,4 +1,4 @@
-name: Deploy Playlist via SFTP
+name: Deploy Playlist via FTP/FTPS
 
 on:
   push:
@@ -11,15 +11,15 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Sync files via SFTP
+      - name: Deploy via FTPS
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          protocol: sftp
-          port: 22
-          remote-dir: /home/dh_45wnm8/playlist.raybullstudio.com/
+          protocol: ftps
+          local-dir: ./
+          server-dir: /home/dh_45wnm8/playlist.raybullstudio.com/
           exclude: |
             **/.git*
             **/.git*/**
