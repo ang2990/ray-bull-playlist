@@ -1,4 +1,4 @@
-name: Deploy Playlist via Native SFTP
+name: Deploy via LFTP SFTP
 
 on:
   push:
@@ -11,19 +11,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup SSH Key & Known Hosts
-        run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan -p 22 ${{ secrets.FTP_SERVER }} >> ~/.ssh/known_hosts
+      - name: Install lftp
+        run: sudo apt-get update && sudo apt-get install -y lftp
 
-      - name: Upload files via SFTP
+      - name: Upload via SFTP
         run: |
-          sftp -P 22 -o "User=${{ secrets.FTP_USERNAME }}" -o "PasswordAuthentication=yes" ${{ secrets.FTP_SERVER }} << 'EOF'
-          cd /playlist.raybullstudio.com/
-          put admin.html
-          put index.html
-          put tracks.json
+          lftp -u "${{ secrets.FTP_USERNAME }},${{ secrets.FTP_PASSWORD }}" -e "
+          set sftp:connect-program 'ssh -a -x -o StrictHostKeyChecking=no';
+          open sftp://${{ secrets.FTP_SERVER }}:22;
+          cd /playlist.raybullstudio.com/;
+          put admin.html;
+          put index.html;
+          put tracks.json;
           bye
-          EOF
-        env:
-          SFTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          "
