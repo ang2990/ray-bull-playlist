@@ -1,4 +1,4 @@
-name: Deploy Playlist via Native rsync over SFTP
+name: Deploy Playlist via SFTP
 
 on:
   push:
@@ -11,13 +11,16 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Install sshpass
-        run: sudo apt-get update && sudo apt-get install -y sshpass
-
-      - name: Sync files via rsync over port 22
-        env:
-          SFTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-          SFTP_USER: ${{ secrets.FTP_USERNAME }}
-          SFTP_HOST: ${{ secrets.FTP_SERVER }}
-        run: |
-          sshpass -p "$SFTP_PASSWORD" rsync -avz -e "ssh -p 22 -o StrictHostKeyChecking=no" --exclude='.git/' --exclude='.github/' ./ "$SFTP_USER@$SFTP_HOST:/home/dh_45wnm8/playlist.raybullstudio.com/"
+      - name: Sync files via SFTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: sftp
+          port: 22
+          remote-dir: /home/dh_45wnm8/playlist.raybullstudio.com/
+          exclude: |
+            **/.git*
+            **/.git*/**
+            .github/**
