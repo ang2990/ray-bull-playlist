@@ -1,0 +1,16 @@
+{
+  "updated": "October 23, 2026",
+  "tracks": [
+    {
+      "number": "01",
+      "title": "Example Track",
+      "artist": "Artist Name",
+      "tidal": "https://tidal.com",
+      "apple": "https://music.apple.com",
+      "qobuz": "https://www.qobuz.com",
+      "youtube": "https://music.youtube.com",
+      "spotify": "https://open.spotify.com",
+      "bandcamp": "https://bandcamp.com"
+    }
+  ]
+}

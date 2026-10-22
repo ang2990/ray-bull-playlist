@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CURATOR ADMIN // RAY BULL</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            background: #fff;
+            color: #000;
+            padding: 40px 20px;
+            max-width: 900px;
+            margin: 0 auto;
+            line-height: 1.4;
+        }
+        h1 { font-size: 14px; margin-bottom: 24px; border-bottom: 1px solid #000; padding-bottom: 12px; }
+        .slot {
+            border: 1px solid #000;
+            padding: 16px;
+            margin-bottom: 16px;
+            background: #fafafa;
+        }
+        .slot-header { font-size: 12px; font-weight: bold; margin-bottom: 12px; }
+        .input-row { display: flex; gap: 8px; margin-bottom: 8px; }
+        input[type="text"] {
+            flex: 1;
+            padding: 8px;
+            font-family: inherit;
+            font-size: 12px;
+            border: 1px solid #000;
+            background: #fff;
+        }
+        button {
+            background: #000;
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            font-family: inherit;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        button:hover { background: #333; }
+        .actions {
+            margin-top: 32px;
+            display: flex;
+            gap: 16px;
+            border-top: 1px solid #000;
+            padding-top: 24px;
+        }
+        textarea {
+            width: 100%;
+            height: 150px;
+            margin-top: 16px;
+            font-family: inherit;
+            font-size: 11px;
+            padding: 12px;
+            border: 1px solid #000;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>CURATOR ADMIN: GENERATE WEEKLY PLAYLIST</h1>
+    <div id="slots-container"></div>
+
+    <div class="actions">
+        <button onclick="generateJSON()">Generate tracks.json</button>
+        <button onclick="downloadJSON()">Download JSON File</button>
+    </div>
+
+    <textarea id="output" placeholder="Generated JSON code will appear here..."></textarea>
+
+    <script>
+        const container = document.getElementById('slots-container');
+
+        // Render 10 track slots
+        for (let i = 1; i <= 10; i++) {
+            const num = i < 10 ? `0${i}` : `${i}`;
+            const div = document.createElement('div');
+            div.className = 'slot';
+            div.innerHTML = `
+                <div class="slot-header">Track ${num}</div>
+                <div class="input-row">
+                    <input type="text" id="url-${i}" placeholder="Paste any DSP link (Spotify, Apple, Tidal) to auto-fetch...">
+                    <button onclick="fetchSong(${i})">Auto-Fetch Links</button>
+                </div>
+                <div class="input-row">
+                    <input type="text" id="title-${i}" placeholder="Song Title">
+                    <input type="text" id="artist-${i}" placeholder="Artist Name">
+                </div>
+                <div class="input-row">
+                    <input type="text" id="tidal-${i}" placeholder="Tidal URL">
+                    <input type="text" id="apple-${i}" placeholder="Apple Music URL">
+                    <input type="text" id="qobuz-${i}" placeholder="Qobuz URL">
+                </div>
+                <div class="input-row">
+                    <input type="text" id="youtube-${i}" placeholder="YouTube Music URL">
+                    <input type="text" id="spotify-${i}" placeholder="Spotify URL">
+                    <input type="text" id="bandcamp-${i}" placeholder="Bandcamp URL">
+                </div>
+            `;
+            container.appendChild(div);
+        }
+
+        async function fetchSong(i) {
+            const urlInput = document.getElementById(`url-${i}`).value.trim();
+            if (!urlInput) return alert('Please paste a link first.');
+
+            try {
+                const res = await fetch(`https://api.song.link/v1-alpha.1/links?url=${encodeURIComponent(urlInput)}`);
+                const data = await res.json();
+
+                // Extract entity info
+                const entityKey = data.entityUniqueId;
+                const entity = data.entitiesByUniqueId[entityKey];
+
+                if (entity) {
+                    document.getElementById(`title-${i}`).value = entity.title || '';
+                    document.getElementById(`artist-${i}`).value = entity.artistName || '';
+                }
+
+                // Map platforms
+                const links = data.linksByPlatform;
+                if (links.tidal) document.getElementById(`tidal-${i}`).value = links.tidal.url;
+                if (links.appleMusic) document.getElementById(`apple-${i}`).value = links.appleMusic.url;
+                if (links.qobuz) document.getElementById(`qobuz-${i}`).value = links.qobuz.url;
+                if (links.youtubeMusic) document.getElementById(`youtube-${i}`).value = links.youtubeMusic.url;
+                if (links.spotify) document.getElementById(`spotify-${i}`).value = links.spotify.url;
+                if (links.bandcamp) document.getElementById(`bandcamp-${i}`).value = links.bandcamp.url;
+
+                alert(`Track ${i} fetched successfully!`);
+            } catch (err) {
+                console.error(err);
+                alert('Failed to fetch links. Check the URL and try again.');
+            }
+        }
+
+        function generateJSON() {
+            const tracks = [];
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            const todayStr = new Date().toLocaleDateString('en-US', options);
+
+            for (let i = 1; i <= 10; i++) {
+                const num = i < 10 ? `0${i}` : `${i}`;
+                tracks.push({
+                    number: num,
+                    title: document.getElementById(`title-${i}`).value || `Track ${num}`,
+                    artist: document.getElementById(`artist-${i}`).value || 'Artist',
+                    tidal: document.getElementById(`tidal-${i}`).value,
+                    apple: document.getElementById(`apple-${i}`).value,
+                    qobuz: document.getElementById(`qobuz-${i}`).value,
+                    youtube: document.getElementById(`youtube-${i}`).value,
+                    spotify: document.getElementById(`spotify-${i}`).value,
+                    bandcamp: document.getElementById(`bandcamp-${i}`).value
+                });
+            }
+
+            const outputData = {
+                updated: todayStr,
+                tracks: tracks
+            };
+
+            document.getElementById('output').value = JSON.stringify(outputData, null, 2);
+        }
+
+        function downloadJSON() {
+            generateJSON();
+            const text = document.getElementById('output').value;
+            const blob = new Blob([text], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'tracks.json';
+            a.click();
+        }
+    </script>
+</body>
+</html>
