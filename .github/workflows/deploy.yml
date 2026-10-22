@@ -1,23 +1,23 @@
-name: Deploy Playlist to DreamHost
+name: Deploy Playlist to DreamHost SFTP
 
 on:
   push:
     branches: [ main ]
 
 jobs:
-  web-deploy:
-    name: SFTP Deploy
+  deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Get latest code
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Sync files to DreamHost via SFTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      - name: Deploy via SFTP
+        uses: cross-the-world/ssh-scp-ssh-pipelines@latest
         with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          protocol: sftp
+          host: ${{ secrets.FTP_SERVER }}
+          user: ${{ secrets.FTP_USERNAME }}
+          pass: ${{ secrets.FTP_PASSWORD }}
           port: 22
-          server-dir: /playlist.raybullstudio.com/
+          connect_timeout: 30s
+          scp: |
+            ./* => /playlist.raybullstudio.com/
